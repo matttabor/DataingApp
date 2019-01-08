@@ -31,7 +31,8 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> GetValue(int id)
         {
             var value = await _dataContext.Values.FirstOrDefaultAsync(v=> v.Id == id);
-            if(value == null){
+            if(value == null)
+            {
                 return NotFound("Cannot find a value with that id");
             }
 
