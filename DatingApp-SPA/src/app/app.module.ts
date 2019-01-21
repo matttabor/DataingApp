@@ -5,6 +5,7 @@ import { JwtModule } from '@auth0/angular-jwt';
 import { BsDropdownModule, TabsModule } from 'ngx-bootstrap';
 import { FormsModule } from '@angular/forms';
 import { NgxGalleryModule } from 'ngx-gallery';
+import { FileUploadModule } from "ng2-file-upload";
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -63,7 +64,8 @@ export function tokenGetter() {
         blacklistedRoutes: ['localhost:5000/api/auth']
       }
     }),
-    NgxGalleryModule
+    NgxGalleryModule,
+    FileUploadModule
   ],
   providers: [
     AuthService,
