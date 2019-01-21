@@ -49,7 +49,7 @@ namespace DatingApp.API.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AddPhotoForUser(int userid, PhotoForCreationDto photoForCreationDto)
+        public async Task<IActionResult> AddPhotoForUser(int userid, [FromForm]PhotoForCreationDto photoForCreationDto)
         {
             if (userid != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
             {
@@ -86,7 +86,7 @@ namespace DatingApp.API.Controllers
             }
 
             userFromRepo.Photos.Add(photo);
-            
+
             if(await _repository.SaveAll())
             {
                 var PhotoForReturnDto = _mapper.Map<PhotoForReturnDto>(photo);
