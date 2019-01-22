@@ -23,7 +23,7 @@ namespace DatingApp.API.Controllers
         private readonly IOptions<CloudinarySettings> _cloudinaryConfig;
         private readonly Cloudinary _cloudinary;
 
-        public PhotosController(IDatingRepository repository, 
+        public PhotosController(IDatingRepository repository,
             IMapper mapper,
             IOptions<CloudinarySettings> cloudinaryConfig)
         {
@@ -32,8 +32,8 @@ namespace DatingApp.API.Controllers
             _cloudinaryConfig = cloudinaryConfig;
 
             Account account = new Account(cloudinaryConfig.Value.CloudName, cloudinaryConfig.Value.ApiKey, cloudinaryConfig.Value.ApiSecret);
-           
-           _cloudinary = new Cloudinary(account);
+
+            _cloudinary = new Cloudinary(account);
         }
 
 
@@ -60,9 +60,9 @@ namespace DatingApp.API.Controllers
             var file = photoForCreationDto.File;
 
             var uploadResult = new ImageUploadResult();
-            if(file.Length > 0)
+            if (file.Length > 0)
             {
-                using(var stream = file.OpenReadStream())
+                using (var stream = file.OpenReadStream())
                 {
                     var uploadParams = new ImageUploadParams
                     {
@@ -79,17 +79,17 @@ namespace DatingApp.API.Controllers
 
             var photo = _mapper.Map<Photo>(photoForCreationDto);
 
-            if(!userFromRepo.Photos.Any(u=> u.IsMain))
+            if (!userFromRepo.Photos.Any(u => u.IsMain))
             {
                 photo.IsMain = true;
             }
 
             userFromRepo.Photos.Add(photo);
 
-            if(await _repository.SaveAll())
+            if (await _repository.SaveAll())
             {
                 var PhotoForReturnDto = _mapper.Map<PhotoForReturnDto>(photo);
-                return CreatedAtRoute("GetPhoto", new {id = photo.Id}, PhotoForReturnDto);
+                return CreatedAtRoute("GetPhoto", new { id = photo.Id }, PhotoForReturnDto);
             }
 
             return BadRequest("Could not add the photo");
@@ -105,13 +105,13 @@ namespace DatingApp.API.Controllers
 
             var userFromRepo = await _repository.GetUser(userId);
 
-            if(!userFromRepo.Photos.Any(p=> p.Id == id))
+            if (!userFromRepo.Photos.Any(p => p.Id == id))
             {
                 return Unauthorized();
             }
 
             var photoFromRepo = await _repository.GetPhoto(id);
-            if(photoFromRepo.IsMain)
+            if (photoFromRepo.IsMain)
             {
                 return BadRequest("This is already the main photo");
             }
@@ -126,6 +126,51 @@ namespace DatingApp.API.Controllers
             }
 
             return BadRequest("Could not set photo to main");
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePhoto(int userId, int id)
+        {
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            {
+                return Unauthorized();
+            }
+
+            var userFromRepo = await _repository.GetUser(userId);
+
+            if (!userFromRepo.Photos.Any(p => p.Id == id))
+            {
+                return Unauthorized();
+            }
+
+            var photoFromRepo = await _repository.GetPhoto(id);
+            if (photoFromRepo.IsMain)
+            {
+                return BadRequest("You cannot delete your main photo");
+            }
+
+            if (photoFromRepo.PublicId != null)
+            {
+                var deleteParams = new DeletionParams(photoFromRepo.PublicId);
+                var result = _cloudinary.Destroy(deleteParams);
+
+                if (result.Result == "ok")
+                {
+                    _repository.Delete(photoFromRepo);
+                }
+            }
+
+            if(photoFromRepo.PublicId == null)
+            {
+                _repository.Delete(photoFromRepo);
+            }
+
+            if (await _repository.SaveAll())
+            {
+                return Ok();
+            }
+
+            return BadRequest("Failed to delete the photo");
         }
     }
 }
