@@ -18,3 +18,8 @@
     height: 50px;
     width: 50px;
 }
+
+.card-body {
+    overflow-y: scroll;
+    height: 400px;
+}
