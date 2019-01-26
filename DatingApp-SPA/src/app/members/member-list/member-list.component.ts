@@ -15,7 +15,7 @@ export class MemberListComponent implements OnInit {
   pagination: Pagination;
   user: User = JSON.parse(localStorage.getItem('user'));
   genderList = [{value: 'male', display: 'Males'}, {value: 'female', display: 'Females'}];
-  userParams: any = { }
+  userParams: any = {};
   users: User[];
 
   constructor(private route: ActivatedRoute,
